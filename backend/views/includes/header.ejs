@@ -1,0 +1,15 @@
+<header>
+  <h2><a href="/">Lumino</a></h2>
+  <nav>
+    <% if (user) { %>
+      <a href="/create-post">Create Post</a>
+
+      <form action="/logout" method="POST" style="display:inline;">
+        <button type="submit">Log Out</button>
+      </form>
+
+    <% } else { %>
+      <a href="/login">Log In</a>
+    <% } %>
+  </nav>
+</header>
