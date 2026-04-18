@@ -8,7 +8,7 @@ const cookieParser = require("cookie-parser")
 const Database = require("better-sqlite3")
 
 const app = express()
-const db = require("better-sqlite3")("luminos.db")
+
 // -------------------- STATIC FILES --------------------
 app.use(express.static(path.join(__dirname, "public")))
 
@@ -34,6 +34,7 @@ app.set("view engine", "ejs")
 app.set("views", path.join(__dirname, "views"))
 
 // -------------------- DATABASE --------------------
+const Database = require("better-sqlite3")
 const db = new Database("luminos.db")
 db.pragma("journal_mode = WAL")
 
