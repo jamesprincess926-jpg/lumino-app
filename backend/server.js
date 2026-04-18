@@ -188,9 +188,9 @@ app.post("/login", async (req, res) => {
   }
 })
 // check if data exists
-app.get("/users", (req, res) => {
-  const users = db.prepare("SELECT * FROM users").all()
-  res.json(users)
+   app.get("/users", (req, res) => {
+    const users = db.prepare("SELECT * FROM users").all()
+    res.json(users)
 })
 
 // -------------------- LOGOUT --------------------
