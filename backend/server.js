@@ -5,7 +5,6 @@ const session = require("express-session")
 const path = require("path")
 const bcrypt = require("bcrypt")
 const cookieParser = require("cookie-parser")
-const Database = require("better-sqlite3")
 
 const app = express()
 
