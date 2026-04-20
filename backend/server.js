@@ -34,7 +34,7 @@ app.set("views", path.join(__dirname, "views"))
 
 // -------------------- DATABASE --------------------
 const Database = require("better-sqlite3")
-const db = new Database("luminos.db")
+const db = new Database(path.join(__dirname, "luminos.db"))
 db.pragma("journal_mode = WAL")
 
 // USERS TABLE
@@ -68,6 +68,8 @@ function requireAuth(req, res, next) {
 
 // -------------------- HOME --------------------
 app.get("/", requireAuth, (req, res) => {
+
+  console.log("SESSION USER:", req.session.user)
 
   const sales = db.prepare(`
     SELECT * FROM sales

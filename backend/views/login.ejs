@@ -1,6 +1,10 @@
 <!DOCTYPE html><html lang="en">
 <%- include('includes/head') %>
-<body>  <!-- Optional header include (only if you have it set up correctly) --><% if (typeof user !== 'undefined') { %>
+<body> 
+  <div class="card">
+    <img src="/images/logo2.png" alt="LUMINO Logo" class="logo">
+
+  <!-- Optional header include (only if you have it set up correctly) --><% if (typeof user !== 'undefined') { %>
 <%- include("includes/header") %>
 <% } %>
 
