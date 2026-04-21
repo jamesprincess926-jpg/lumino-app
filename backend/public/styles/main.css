@@ -1,81 +1,139 @@
- * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: "Segoe UI", sans-serif;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", sans-serif;
+}
+
+body {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #020617, #0F172A);
+  color: #FFFFFF;
+}
+
+/* MAIN LAYOUT */
+.container {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* LEFT SIDE (HERO) */
+.hero {
+  flex: 1;
+  padding: 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.hero h1 {
+  font-size: 42px;
+  margin-bottom: 10px;
+}
+
+.hero h2 {
+  color: #D4AF37;
+  margin-bottom: 15px;
+}
+
+.hero p {
+  color: #94A3B8;
+  margin-bottom: 8px;
+}
+
+/* RIGHT SIDE (SALES SECTION) */
+.sales-section {
+  flex: 2;
+  padding: 40px 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* FORM CARD */
+.form-card {
+  background: #1E293B;
+  padding: 30px;
+  border-radius: 16px;
+  border: 1px solid rgba(212, 175, 55, 0.15);
+  box-shadow: 0 0 30px rgba(212, 175, 55, 0.08);
+  width: 100%;
+  max-width: 700px;
+}
+
+/* HEADINGS */
+h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #D4AF37;
+}
+
+/* INPUTS */
+input {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0 15px;
+  border-radius: 10px;
+  border: none;
+  background: #020617;
+  color: #FFFFFF;
+}
+
+input::placeholder {
+  color: #94A3B8;
+}
+
+input:focus {
+  outline: none;
+  border: 1px solid #D4AF37;
+  box-shadow: 0 0 8px rgba(212, 175, 55, 0.4);
+}
+
+/* BUTTON */ 
+button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 15px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #D4AF37, #C9A227);
+  color: #020617;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+button:hover {
+  box-shadow: 0 0 12px rgba(212, 175, 55, 0.5);
+}
+
+/* TABLE */
+table {
+  width: 100%;
+  margin-top: 20px;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 10px;
+  text-align: left;
+}
+
+th {
+  color: #D4AF37;
+}
+
+/* MOBILE RESPONSIVE */
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
   }
 
-  body {
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: linear-gradient(135deg, #020617, #0F172A);
-    color: #FFFFFF;
-  }
-
-  .card {
-    background: #1E293B;
-    padding: 40px;
-    border-radius: 16px;
-    width: 320px;
-    border: 1px solid rgba(212, 175, 55, 0.15);
-    box-shadow: 0 0 30px rgba(212, 175, 55, 0.08);
-  }
-
-  h2 {
+  .hero {
+    padding: 30px;
     text-align: center;
-    margin-bottom: 25px;
-    color: #D4AF37;
-    letter-spacing: 0.5px;
   }
 
-  input {
-    width: 100%;
-    padding: 12px;
-    margin: 10px 0;
-    border-radius: 10px;
-    border: 1px solid transparent;
-    outline: none;
-    background: #020617;
-    color: #FFFFFF;
-    transition: 0.3s;
+  .sales-section {
+    padding: 20px;
   }
-
-  input:focus {
-    border: 1px solid #D4AF37;
-    box-shadow: 0 0 8px rgba(212, 175, 55, 0.4);
-  }
-
-  input::placeholder {
-    color: #94A3B8;
-  }
-
-  button {
-    width: 100%;
-    padding: 12px;
-    margin-top: 15px;
-    border: none;
-    border-radius: 10px;
-    background: linear-gradient(135deg, #D4AF37, #C9A227);
-    color: #020617;
-    font-weight: bold;
-    cursor: pointer;
-    transition: 0.3s;
-  }
-
-  button:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 0 12px rgba(212, 175, 55, 0.5);
-  }
-
-  .link {
-    text-align: center;
-    margin-top: 18px;
-    font-size: 14px;
-  }
-
-  .link a {
-    color: #D4AF37;
-    text-decoration: none;
-  }
+}
