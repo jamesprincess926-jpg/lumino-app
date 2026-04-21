@@ -5,13 +5,33 @@ const session = require("express-session")
 const path = require("path")
 const bcrypt = require("bcrypt")
 const cookieParser = require("cookie-parser")
+const mongoose = require("mongoose")
 
 const app = express()
 
-// -------------------- STATIC FILES --------------------
-app.use(express.static(path.join(__dirname, "public")))
+// -------------------- DATABASE --------------------
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log("MongoDB connected"))
+  .catch(err => console.error(err))
+
+// -------------------- MODELS --------------------
+const userSchema = new mongoose.Schema({
+  username: String,
+  email: { type: String, unique: true },
+  phone: String,
+  password: String
+})
+
+const saleSchema = new mongoose.Schema({
+  product: String,
+  amount: Number,
+  date: Date,
+  user_id: { type: mongoose.Schema.Types.ObjectId, ref: "User" }
+})
+
 
 // -------------------- MIDDLEWARE --------------------
+app.use(express.static(path.join(__dirname, "public")))
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
 app.use(cookieParser())
@@ -20,7 +40,7 @@ app.use(session({
   secret: process.env.SESSION_SECRET || "secret-key",
   resave: false,
   saveUninitialized: false,
-  cookie: {secure: false} //change ro true only if using HTTPS
+  cookie: { secure: false } // set true only in production (HTTPS)
 }))
 
 // Make user available in all EJS
@@ -32,34 +52,6 @@ app.use((req, res, next) => {
 app.set("view engine", "ejs")
 app.set("views", path.join(__dirname, "views"))
 
-// -------------------- DATABASE --------------------
-const Database = require("better-sqlite3")
-const db = new Database(path.join(__dirname, "luminos.db"))
-db.pragma("journal_mode = WAL")
-
-// USERS TABLE
-db.prepare(`
-  CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT,
-    email TEXT UNIQUE,
-    phone TEXT,
-    password TEXT
-  )
-`).run()
-
-// SALES TABLE
-db.prepare(`
-  CREATE TABLE IF NOT EXISTS sales (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    product TEXT,
-    amount REAL,
-    date TEXT,
-    user_id INTEGER,
-    FOREIGN KEY (user_id) REFERENCES users(id)
-  )
-`).run()
-
 // -------------------- AUTH MIDDLEWARE --------------------
 function requireAuth(req, res, next) {
   if (!req.session.user) return res.redirect("/login")
@@ -67,43 +59,42 @@ function requireAuth(req, res, next) {
 }
 
 // -------------------- HOME --------------------
-app.get("/", requireAuth, (req, res) => {
+app.get("/", requireAuth, async (req, res) => {
+  try {
+    const sales = await Sale.find({ user_id: req.session.user._id })
+      .sort({ _id: -1 })
 
-  console.log("SESSION USER:", req.session.user)
+    const totalData = await Sale.aggregate([
+      { $match: { user_id: req.session.user._id } },
+      { $group: { _id: null, total: { $sum: "$amount" } } }
+    ])
 
-  const sales = db.prepare(`
-    SELECT * FROM sales
-    WHERE user_id = ?
-    ORDER BY id DESC
-  `).all(req.session.user.id)
+    const total = totalData[0]?.total || 0
 
-  const total = db.prepare(`
-    SELECT SUM(amount) AS total
-    FROM sales
-    WHERE user_id = ?
-  `).get(req.session.user.id)
-
-  res.render("home", {
-    sales,
-    total: total.total || 0
-  })
+    res.render("home", { sales, total })
+  } catch (err) {
+    console.error(err)
+    res.status(500).send("Internal Server Error")
+  }
 })
 
 // -------------------- ADD SALE --------------------
-app.post("/add-sale", requireAuth, (req, res) => {
+app.post("/add-sale", requireAuth, async (req, res) => {
   const { product, amount } = req.body
 
-  db.prepare(`
-    INSERT INTO sales (product, amount, date, user_id)
-    VALUES (?, ?, ?, ?)
-  `).run(
-    product,
-    amount,
-    new Date().toISOString(),
-    req.session.user.id
-  )
+  try {
+    await Sale.create({
+      product,
+      amount,
+      date: new Date(),
+      user_id: req.session.user._id
+    })
 
-  res.redirect("/")
+    res.redirect("/")
+  } catch (err) {
+    console.error(err)
+    res.status(500).send("Internal Server Error")
+  }
 })
 
 // -------------------- REGISTER --------------------
@@ -112,8 +103,7 @@ app.get("/register", (req, res) => {
 })
 
 app.post("/register", async (req, res) => {
-  const { username, phone, password } = req.body
-  const email = req.body.email.toLowerCase().trim()
+  const { username, email, phone, password } = req.body
   const errors = []
 
   if (!username || !email || !phone || !password) {
@@ -122,31 +112,26 @@ app.post("/register", async (req, res) => {
   }
 
   try {
-    const existingUser = db.prepare(`
-      SELECT * FROM users WHERE email = ?
-    `).get(email)
+    const existingUser = await User.findOne({ email })
 
     if (existingUser) {
       errors.push("Email already exists")
       return res.render("register", { errors })
     }
 
-    const hashed = await bcrypt.hash(password, 10)
+    const hashedPassword = await bcrypt.hash(password, 10)
 
-    db.prepare(`
-      INSERT INTO users (username, email, phone, password)
-      VALUES (?, ?, ?, ?)
-    `).run(username, email, phone, hashed)
+    const newUser = await User.create({
+      username,
+      email,
+      phone,
+      password: hashedPassword
+    })
 
-    // AUTO LOGIN AFTER REGISTER
-    const newUser = db.prepare(`
-      SELECT * FROM users WHERE email = ?
-    `).get(email)
-
+    // AUTO LOGIN
     req.session.user = newUser
 
     res.redirect("/")
-
   } catch (err) {
     console.error(err)
     res.status(500).send("Internal Server Error")
@@ -164,9 +149,7 @@ app.post("/login", async (req, res) => {
   const errors = []
 
   try {
-    const user = db.prepare(`
-      SELECT * FROM users WHERE email = ?
-    `).get(email)
+    const user = await User.findOne({ email })
 
     if (!user) {
       errors.push("Invalid email or password")
@@ -181,17 +164,18 @@ app.post("/login", async (req, res) => {
     }
 
     req.session.user = user
-    res.redirect("/")
 
+    res.redirect("/")
   } catch (err) {
     console.error(err)
     res.status(500).send("Internal Server Error")
   }
 })
-// check if data exists
-   app.get("/users", (req, res) => {
-    const users = db.prepare("SELECT * FROM users").all()
-    res.json(users)
+
+// -------------------- CHECK USERS --------------------
+app.get("/users", async (req, res) => {
+  const users = await User.find()
+  res.json(users)
 })
 
 // -------------------- LOGOUT --------------------
@@ -201,7 +185,7 @@ app.get("/logout", (req, res) => {
   })
 })
 
-// -------------------- START SERVER --------------------
+// -------------------- SERVER --------------------
 const PORT = process.env.PORT || 3000
 
 app.listen(PORT, () => {
