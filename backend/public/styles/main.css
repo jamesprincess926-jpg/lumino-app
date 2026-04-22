@@ -29,7 +29,22 @@ header{
   padding: 0;
   border-radius: 10px;
 }
-
+.header-left{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.logo{
+  width: 120px;
+  margin: 10px;
+  object-fit: contain;
+}
+nav a{
+  color: #fff;
+  text-decoration: none;
+  margin: 0 15px;
+  font-weight: 500;
+}
 
 button a{
   color: #0A1041;
