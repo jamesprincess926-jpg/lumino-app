@@ -12,8 +12,8 @@ const app = express()
 // -------------------- DATABASE --------------------
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB connected"))
-  .catch(err => console.error(err))
-
+  .catch(err => console.error("MongoDB connection error:", err))
+ console.log(process.env.MONGO_URI)
 // -------------------- MODELS --------------------
 const userSchema = new mongoose.Schema({
   username: String,
@@ -29,6 +29,37 @@ const saleSchema = new mongoose.Schema({
   user_id: { type: mongoose.Schema.Types.ObjectId, ref: "User" }
 })
 
+const businessSchema = new mongoose.Schema({
+  name: String,
+  description: String,
+  contact: String,
+  user_id: { type: mongoose.Schema.Types.ObjectId, ref: "User" }
+})
+
+const User = mongoose.model("User", userSchema)
+const Sale = mongoose.model("Sale", saleSchema)
+const Business = mongoose.model("Business", businessSchema)
+
+const testSchema = new mongoose.Schema({
+  name: String,
+  value: Number
+})
+const testModel = mongoose.model("Test", testSchema)
+// test route to check if models work
+app.get("/add", async (req, res) => {
+  try{
+  await User.create({ 
+    username: "testuser",
+    email: "testuser@example.com",
+    phone: "1234567890", 
+    password: "password" 
+  })
+  res.send("User created successfully")
+} catch (err) {
+  console.error(err)
+  res.status(500).send("Internal Server Error")
+}
+})
 
 // -------------------- MIDDLEWARE --------------------
 app.use(express.static(path.join(__dirname, "public")))
@@ -76,6 +107,9 @@ app.get("/", requireAuth, async (req, res) => {
     console.error(err)
     res.status(500).send("Internal Server Error")
   }
+})
+app.get("/generate", (req, res) => {
+   res.render("generate")
 })
 
 // -------------------- ADD SALE --------------------
