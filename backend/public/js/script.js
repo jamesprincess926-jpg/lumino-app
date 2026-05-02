@@ -7,32 +7,49 @@ function selectTemplate(type){
   document.getElementById('formSection').style.display = 'block';
 }
 
-function generateSite(){
+async function generateSite(){
   const name = document.getElementById('name').value;
   const desc = document.getElementById('desc').value;
   const contact = document.getElementById('contact').value;
 
-  document.getElementById('pName').innerText = name;
-  document.getElementById('pDesc').innerText = desc;
-  document.getElementById('pContact').innerText = contact;
-
-  document.getElementById('preview').style.display = 'block';
-  window.scrollTo(0, document.body.scrollHeight);
+  const res = await fetch(`/create-site`, {
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json'
+     },
+    body: JSON.stringify({ name, desc, contact })
+  });
+  const result = await res.json();
 }
+// SHOW LINK INSTTEAD OF PREVIEW
+document.getElementById('previewBtn').innerHTML
+ = `
+     <h3>Your site is being generated...</h3>
+     <p>Please wait a moment.</p>
+     <a href="${result.url}" target="_blank">${result.url}</a>
+  `;
 
 
 // ================= SALES =================
 let sales = [];
 let editIndex = -1;
 
-// Load from localStorage
-window.onload = function () {
-  const savedSales = localStorage.getItem('salesData');
-  if (savedSales) {
-    sales = JSON.parse(savedSales);
+// Load from database
+async function addSales() {
+  const productInput = document.getElementById('product');
+  const amountInput = document.getElementById('amount');
+  if (productInput && amountInput) {
+    productInput.value = '';
+    amountInput.value = '';
   }
-  renderSales();
-};
+  const response = await fetch('/add-sales', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId: '12345' })
+  });
+  window.location.reload();
+  if (response.ok) {
+    sales = await response.json();
 
 
 // ================= ADD / UPDATE =================
@@ -82,24 +99,33 @@ function editSale(index) {
 
 
 // ================= DELETE =================
-function deleteSale(index) {
-  sales.splice(index, 1);
-  saveAndRender();
+async function deleteSale(id) {
+  const response = await fetch(`/delete-sale/${id}`, {
+    method: 'DELETE'
+  });
+  if (response.ok) {
+    window.location.reload();
+  }
 }
 
-
 // ================= SAVE =================
-function saveAndRender() {
-  localStorage.setItem('salesData', JSON.stringify(sales));
-  renderSales();
+async function saveAndRender() {
+  const response = await fetch('/save-sales', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId: '12345', sales })
+  });
+  if (response.ok) {
+    window.location.reload();
+  }
 }
 
 
 // ================= RENDER =================
-function renderSales() {
+async function renderSales( {
   const tableBody = document.querySelector('#salesTable tbody');
   tableBody.innerHTML = '';
-
+})
   const filter = document.getElementById('filter').value;
   let total = 0;
   const now = new Date();
@@ -134,31 +160,8 @@ function renderSales() {
     if (include) {
       const row = document.createElement('tr');
 
-      row.innerHTML = `
-        <td>${saleDate.toLocaleString('en-NG')}</td>
-        <td>${sale.product}</td>
-        <td>${sale.amount.toLocaleString('en-NG', {
-          style: 'currency',
-          currency: 'NGN'
-        })}</td>
-        <td>
-          <button class="edit-btn" onclick="editSale(${index})">Edit</button>
-          <button class="delete-btn" onclick="deleteSale(${index})">Delete</button>
-        </td>
-      `;
-
-      tableBody.appendChild(row);
-      total += sale.amount;
-    }
-  });
-
-  document.getElementById('totalSales').innerText =
-    `Total Sales: ${total.toLocaleString('en-NG', {
-      style: 'currency',
-      currency: 'NGN'
-    })}`;
-
-  updateSummary(); // ✅ IMPORTANT
+      
+      // ✅ IMPORTANT
 }
 
 
@@ -197,4 +200,4 @@ function updateSummary() {
 
   document.getElementById('monthCard').innerText =
     `Month: ₦${month.toLocaleString()}`;
-}
+})

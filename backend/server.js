@@ -96,6 +96,7 @@ app.get("/", requireAuth, async (req, res) => {
     const sales = await Sale.find({ user_id: req.session.user._id })
       .sort({ _id: -1 })
 
+
     const totalData = await Sale.aggregate([
       { $match: { user_id: req.session.user._id } },
       { $group: { _id: null, total: { $sum: "$amount" } } }
@@ -114,6 +115,11 @@ app.get("/generate", (req, res) => {
 })
 
 // -------------------- ADD SALE --------------------
+app.get("/sale", requireAuth, (req, res) => {
+
+  res.render("add-sale")
+})
+
 app.post("/add-sale", requireAuth, async (req, res) => {
   const { product, amount } = req.body
 
@@ -212,6 +218,18 @@ app.get("/users", async (req, res) => {
   const users = await User.find()
   res.json(users)
 })
+
+app.get("/sales", async (req, res) => {
+  const sales = await Sale.find()
+  res.json(sales)
+})
+
+app.get("/businesses", async (req, res) => {
+  const businesses = await Business.find()
+  res.json(businesses)
+})
+
+
 
 // -------------------- LOGOUT --------------------
 app.get("/logout", (req, res) => {
